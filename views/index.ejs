@@ -3,28 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mini Whatsapp</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Payment history</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .transaction-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .transaction { position: relative; align-items: flex-start; flex-wrap: wrap; gap: 14px; border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+        .transaction[role="link"] { cursor: pointer; }
+        .transaction[role="link"]:hover { border-color: var(--green); box-shadow: 0 4px 14px rgba(23, 107, 80, .08); }
+        .transaction[role="link"]:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+        .transaction-main { min-width: 0; }
+        .transaction-top { align-items: flex-start; }
+        .transaction-top h3 { overflow-wrap: anywhere; }
+        .transaction-top p { overflow-wrap: anywhere; }
+        .transaction-meta { justify-content: flex-start; flex-wrap: wrap; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); }
+        .transaction-meta a { margin-left: auto; }
+        .delete-button { margin-left: auto; }
+        .paid-by { color: var(--muted); font-size: 12px; margin: 4px 0 0; }
+        .semester { color: var(--green); font-size: 12px; font-weight: 600; }
+        .food-preference { color: var(--muted); font-size: 12px; margin: 4px 0 0; }
+        .history-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0; }
+        .filter-link { border: 1px solid var(--line); border-radius: 7px; color: var(--muted); font-size: 13px; padding: 9px 12px; text-decoration: none; }
+        .filter-link.active, .filter-link:hover { background: var(--green); border-color: var(--green); color: #fff; }
+        .admin-actions { display: flex; align-items: center; gap: 10px; }
+        .admin-link, .logout-button { border: 0; background: transparent; color: var(--green); cursor: pointer; font: 600 13px 'DM Sans'; text-decoration: none; }
+        .logout-button { color: var(--muted); padding: 0; }
+        @media (max-width: 700px) {
+            .transaction-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-    <h3>All chats</h3>
-    <form method="GET" action="/chats/new"><button class="btn">New chats</button></form>
-    <br>
-    <% for(let chat of chats) { %>
-        <div class="chat">
-            <p>From : <i><%= chat.from %></i></p>
-            <div class="msg">
-                <p>Message : <%= chat.msg %></p>
-                <form method="GET" action="/chats/<%= chat._id %>/edit"><button>Edit</button></form><br>
-                <form method="POST" action="/chats/<%= chat._id %>?_method=DELETE"><button>Delete</button></form>
-
+    <main class="page-shell">
+        <header class="page-header"><div><p class="eyebrow">Frashers_WALLET</p><h1>Payment history</h1><p class="subtitle">Keep track of every payment in one place.</p></div><div class="admin-actions"><form method="GET" action="/chats/new"><button class="btn">+ Add payment</button></form><% if (isAdmin) { %><form method="POST" action="/admin/logout"><button class="logout-button" type="submit">Admin logout</button></form><% } else { %><a class="admin-link" href="/admin/login">Admin login</a><% } %></div></header>
+        <% if (success) { %><div class="success-banner" role="status"><span class="success-icon">&#10003;</span><div><strong>Payment added successfully</strong><p>Your new transaction is now in the history below.</p></div></div><% } %>
+        <section class="history-panel"><div class="panel-heading"><div><p class="eyebrow">RECENT ACTIVITY</p><h2><%= selectedSemester === "all" ? "All transactions" : selectedSemester + " transactions" %></h2></div><span class="count"><%= chats.length %> total</span></div>
+            <nav class="history-filters" aria-label="Filter transactions by semester">
+                <a class="filter-link <%= selectedSemester === "all" ? "active" : "" %>" href="/chats">All</a>
+                <a class="filter-link <%= selectedSemester === "2nd Semester" ? "active" : "" %>" href="/chats?semester=2nd%20Semester">2nd Semester</a>
+                <a class="filter-link <%= selectedSemester === "5th Semester" ? "active" : "" %>" href="/chats?semester=5th%20Semester">5th Semester</a>
+                <a class="filter-link <%= selectedSemester === "7th Semester" ? "active" : "" %>" href="/chats?semester=7th%20Semester">7th Semester</a>
+            </nav>
+            <% if (chats.length === 0) { %><p class="empty-state">No payments yet. Add your first payment to get started.</p><% } %>
+            <div class="transaction-grid">
+        <% for(let chat of chats) { %>
+            <article class="transaction" role="link" tabindex="0" aria-label="View payment details for <%= chat.to %>" data-details-url="/chats/<%= chat._id %>"><div class="transaction-icon">&#8599;</div><div class="transaction-main"><div class="transaction-top"><div><h3>Payment to <%= chat.to %></h3><p class="paid-by">Paid by <%= chat.from %></p><p class="semester"><%= chat.semester || "Semester not specified" %></p><% if (chat.food_preference) { %><p class="food-preference"><%= chat.food_preference %></p><% } %><p><%= chat.msg || "Personal payment" %></p></div><strong class="amount">-&#8377;<%= Number(chat.amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 }) %></strong></div><div class="transaction-meta"><span><%= chat.payment_method || "UPI" %></span><span class="status"><%= chat.status || "Successful" %></span><span><%= chat.created_at.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) %></span></div></div><% if (isAdmin) { %><form method="POST" action="/chats/<%= chat._id %>?_method=DELETE"><button class="delete-button" aria-label="Delete payment">&#215;</button></form><% } %></article>
+        <% } %>
             </div>
-            <p>Recevied by : <i><%= chat.to %></i> </p>
-            <hr>
-            <p><%= chat.created_at.toString().split(" ")[4] %></p>
-            <p><%= chat.created_at.toString().split(" ").slice(0,4).join(" ") %></p>
-        </div>
-        <br><br>
-    <% } %>
+        </section>
+    </main>
+    <script>
+        document.querySelectorAll(".transaction[role='link']").forEach((card) => {
+            const openDetails = () => { window.location.href = card.dataset.detailsUrl; };
+            card.addEventListener("click", (event) => {
+                if (!event.target.closest("button, form, a, input, select, textarea")) openDetails();
+            });
+            card.addEventListener("keydown", (event) => {
+                if ((event.key === "Enter" || event.key === " ") && event.target === card) {
+                    event.preventDefault();
+                    openDetails();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

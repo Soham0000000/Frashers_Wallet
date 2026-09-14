@@ -3,15 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit your Chat</title>
+    <title>Payment details | Payment history</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .details-panel { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px 24px; margin-bottom: 24px; }
+        .detail-row { display: flex; justify-content: space-between; gap: 24px; padding: 17px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+        .detail-row:last-child { border-bottom: 0; }
+        .detail-row span { color: var(--muted); }
+        .detail-row strong { text-align: right; }
+        .detail-row .status { color: var(--green); }
+        .detail-row .semester { color: var(--green); }
+        .note-form { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+        .note-form label { display: block; }
+        .note-form .btn { margin-top: 14px; }
+        .edit-form { display: grid; gap: 16px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+        .edit-form label { display: block; font-size: 13px; font-weight: 600; }
+        .edit-form input, .edit-form select, .edit-form textarea { margin-top: 8px; }
+        .readonly-field { color: var(--muted); font-size: 13px; }
+        .admin-only-note { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+        @media (max-width: 620px) {
+            .details-panel { padding: 8px 18px; }
+            .detail-row { align-items: flex-start; flex-direction: column; gap: 5px; }
+            .detail-row strong { text-align: left; word-break: break-word; }
+        }
+    </style>
 </head>
 <body>
-    <p>Edit your Chat: <%= chat._id %></p>
-    <p>This chat was send from <b><%= chat.from %></b> to <b> <%= chat.to %> </b> </p>
-    
-    <form method="POST" action="/chats/<%= chat._id %>?_method=PUT">
-        <textarea name="msg" id="" rows="6" cols="50"><%= chat.msg %></textarea><br>
-        <button>Edit</button>
+    <main class="page-shell form-shell">
+    <a class="back-link" href="/chats">&#8592; Back to history</a>
+    <div class="form-heading"><p class="eyebrow">TRANSACTION DETAILS</p><h1>Payment to <%= chat.to %></h1><p class="subtitle">Transaction ID: <%= chat.transaction_id || "Not available" %></p></div>
+
+    <section class="details-panel" aria-label="Payment information">
+        <div class="detail-row"><span>Paid by</span><strong><%= chat.from %></strong></div>
+        <div class="detail-row"><span>Paid to</span><strong><%= chat.to %></strong></div>
+        <div class="detail-row"><span>Amount</span><strong>&#8377;<%= Number(chat.amount || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 }) %></strong></div>
+        <div class="detail-row"><span>Semester</span><strong class="semester"><%= chat.semester || "Semester not specified" %></strong></div>
+        <div class="detail-row"><span>Food preference</span><strong><%= chat.food_preference || "Not specified" %></strong></div>
+        <div class="detail-row"><span>Payment method</span><strong><%= chat.payment_method || "UPI" %></strong></div>
+        <div class="detail-row"><span>Status</span><strong class="status"><%= chat.status || "Successful" %></strong></div>
+        <div class="detail-row"><span>Transaction ID</span><strong><%= chat.transaction_id || "Not available" %></strong></div>
+        <div class="detail-row"><span>Payment date</span><strong><%= chat.created_at ? chat.created_at.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Not available" %></strong></div>
+        <div class="detail-row detail-note"><span>Note</span><strong><%= chat.msg || "No note added" %></strong></div>
+    </section>
+
+    <% if (isAdmin) { %>
+    <p class="admin-only-note">Admin mode: you can update all payment information below.</p>
+    <form method="POST" action="/chats/<%= chat._id %>?_method=PUT" class="edit-form">
+        <label>Paid by<input type="text" name="from" value="<%= chat.from %>" required></label>
+        <label>Paid to<input type="text" name="to" value="<%= chat.to %>" required></label>
+        <label>Amount<input type="number" name="amount" value="<%= chat.amount %>" min="1" step="0.01" required></label>
+        <label>Semester<select name="semester" required><option value="2nd Semester" <%= chat.semester === "2nd Semester" ? "selected" : "" %>>2nd Semester</option><option value="5th Semester" <%= chat.semester === "5th Semester" ? "selected" : "" %>>5th Semester</option><option value="7th Semester" <%= chat.semester === "7th Semester" ? "selected" : "" %>>7th Semester</option></select></label>
+        <label>Food preference<select name="food_preference"><option value="" <%= !chat.food_preference ? "selected" : "" %>>Not specified</option><option value="Veg" <%= chat.food_preference === "Veg" ? "selected" : "" %>>Veg</option><option value="Non-Veg" <%= chat.food_preference === "Non-Veg" ? "selected" : "" %>>Non-Veg</option></select></label>
+        <label>Payment method<select name="payment_method"><option value="UPI" <%= chat.payment_method === "UPI" ? "selected" : "" %>>UPI</option><option value="Card" <%= chat.payment_method === "Card" ? "selected" : "" %>>Card</option><option value="Net banking" <%= chat.payment_method === "Net banking" ? "selected" : "" %>>Net banking</option><option value="Wallet" <%= chat.payment_method === "Wallet" ? "selected" : "" %>>Wallet</option><option value="Cash" <%= chat.payment_method === "Cash" ? "selected" : "" %>>Cash</option></select></label>
+        <label>Status<select name="status"><option value="Successful" <%= chat.status === "Successful" ? "selected" : "" %>>Successful</option><option value="Pending" <%= chat.status === "Pending" ? "selected" : "" %>>Pending</option><option value="Failed" <%= chat.status === "Failed" ? "selected" : "" %>>Failed</option></select></label>
+        <label>Note<textarea name="msg" rows="4"><%= chat.msg || "" %></textarea></label>
+        <div class="readonly-field">Transaction ID: <%= chat.transaction_id || "Not available" %></div>
+        <div class="readonly-field">Payment date: <%= chat.created_at ? chat.created_at.toLocaleString("en-IN", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" }) : "Not available" %></div>
+        <button class="btn" type="submit">Save all changes</button>
     </form>
+    <% } %>
+    </main>
 </body>
 </html>

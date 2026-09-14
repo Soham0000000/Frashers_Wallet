@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin login | Payment history</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <main class="page-shell form-shell">
+        <a class="back-link" href="/chats">&#8592; Back to history</a>
+        <div class="form-heading"><p class="eyebrow">ADMIN ONLY</p><h1>Admin login</h1><p class="subtitle">Sign in to manage payment records.</p></div>
+        <% if (error) { %><div class="success-banner" role="alert"><div><strong>Incorrect password</strong><p>Please try again.</p></div></div><% } %>
+        <form action="/admin/login" method="post" class="payment-form">
+            <label>Password<input type="password" name="password" required autofocus></label>
+            <button class="btn form-submit" type="submit">Sign in</button>
+        </form>
+    </main>
+</body>
+</html>

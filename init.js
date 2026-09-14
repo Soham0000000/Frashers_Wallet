@@ -7,32 +7,44 @@ main()
     }).catch((err)=>console.log(err));
 
 async function main(){
-    await mongoose.connect("mongodb://127.0.0.1:27017/whatsapp");
+    await mongoose.connect("mongodb://127.0.0.1:27017/fakewhatsapp");
 }
 
 let allChats = [
      {
         from: "rohit",
         to: "rajib",
-        msg: "send me videos",
+        msg: "Monthly subscription",
+        amount: 499,
+        payment_method: "UPI",
+        status: "Successful",
         created_at: new Date(),
     },
      {
         from: "saniya",
         to: "sneha",
-        msg: "send me notes",
+        msg: "Dinner split",
+        amount: 850,
+        payment_method: "Card",
+        status: "Successful",
         created_at: new Date(),
     },
      {
         from: "soham",
         to: "ankit",
-        msg: "send me videos",
+        msg: "Movie tickets",
+        amount: 620,
+        payment_method: "Wallet",
+        status: "Successful",
         created_at: new Date(),
     },
      {
         from: "keya",
         to: "sona",
-        msg: "send me books Links",
+        msg: "Books",
+        amount: 1200,
+        payment_method: "Net banking",
+        status: "Successful",
         created_at: new Date(),
     },
 ];
