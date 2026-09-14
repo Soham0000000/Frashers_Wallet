@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const express = require("express");
-const port = 8080;
+const port = process.env.PORT || 8080;
 const app = express();
 const mongoose = require("mongoose");//define mongoose
 const path = require("path");//define path
@@ -11,6 +11,7 @@ const session = require("express-session");
 const ExpressError = require("./ExpressError.js");
 
 const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+const mongoUri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/fakewhatsapp";
 
 //use views folder
 app.set("views",path.join(__dirname,"views"));
@@ -33,13 +34,16 @@ function requireAdmin(req, res, next) {
 }
 
 //mongoose use
-main()
-    .then(()=>{
-        console.log("connection successful!");
-    }).catch((err)=>console.log(err));
+main().catch((err) => {
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
+});
 
 async function main(){
-    await mongoose.connect('mongodb://127.0.0.1:27017/fakewhatsapp');
+    await mongoose.connect(mongoUri, {
+        serverSelectionTimeoutMS: 10000
+    });
+    console.log("connection successful!");
 }
 app.get("/",(req,res)=>{
     res.redirect("/chats");
