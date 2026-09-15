@@ -33,18 +33,27 @@ function requireAdmin(req, res, next) {
     res.status(403).send("Only the admin can remove payment records.");
 }
 
-//mongoose use
-main().catch((err) => {
-    console.error("MongoDB connection failed:", err.message);
-    process.exit(1);
+let mongoConnection;
+
+function connectMongo() {
+    if (!mongoConnection) {
+        mongoConnection = mongoose.connect(mongoUri, {
+            serverSelectionTimeoutMS: 10000
+        });
+    }
+    return mongoConnection;
+}
+
+app.use(async (req, res, next) => {
+    try {
+        await connectMongo();
+        next();
+    } catch (err) {
+        console.error("MongoDB connection failed:", err.message);
+        next(err);
+    }
 });
 
-async function main(){
-    await mongoose.connect(mongoUri, {
-        serverSelectionTimeoutMS: 10000
-    });
-    console.log("connection successful!");
-}
 app.get("/",(req,res)=>{
     res.redirect("/chats");
 });
